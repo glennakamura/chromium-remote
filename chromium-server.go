@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"golang.org/x/net/websocket"
 )
@@ -17,6 +19,22 @@ func hostIP() string {
 		return "127.0.0.1"
 	}
 	return addrs[0]
+}
+
+func sigChildHandler() {
+	sigChild := make(chan os.Signal, 16)
+	signal.Notify(sigChild, syscall.SIGCHLD)
+	for {
+		<-sigChild
+		var status syscall.WaitStatus
+		pid, err := syscall.Wait4(-1, &status, 0, nil)
+		for err == syscall.EINTR {
+			pid, err = syscall.Wait4(-1, &status, 0, nil)
+		}
+		if err == nil {
+			log.Printf("Child %d exit status (%d)", pid, status)
+		}
+	}
 }
 
 func chromiumServer(ws *websocket.Conn) {
@@ -54,6 +72,9 @@ func chromiumServer(ws *websocket.Conn) {
 
 func main() {
 	http.Handle("/chromium", websocket.Handler(chromiumServer))
+	if os.Getpid() == 1 {
+		go sigChildHandler()
+	}
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
