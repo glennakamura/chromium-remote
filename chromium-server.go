@@ -57,7 +57,8 @@ func chromiumServer(ws *websocket.Conn) {
 		log.Print(err)
 		return
 	}
-	log.Print("Start chromium-browser " + strings.Join(args, " "))
+	log.Printf("Start %d chromium-browser "+strings.Join(args, " "),
+		cmd.Process.Pid)
 	buf := make([]byte, 512)
 	for {
 		if _, err := ws.Read(buf); err != nil {
@@ -67,7 +68,7 @@ func chromiumServer(ws *websocket.Conn) {
 	ws.Close()
 	cmd.Process.Kill()
 	cmd.Wait()
-	log.Print("Kill chromium-browser " + strings.Join(args, " "))
+	log.Printf("Kill %d chromium-browser", cmd.Process.Pid)
 }
 
 func main() {
