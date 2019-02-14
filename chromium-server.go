@@ -22,17 +22,19 @@ func hostIP() string {
 }
 
 func sigChildHandler() {
-	sigChild := make(chan os.Signal, 16)
+	sigChild := make(chan os.Signal, 4)
 	signal.Notify(sigChild, syscall.SIGCHLD)
 	for {
 		<-sigChild
-		var status syscall.WaitStatus
-		pid, err := syscall.Wait4(-1, &status, 0, nil)
-		for err == syscall.EINTR {
-			pid, err = syscall.Wait4(-1, &status, 0, nil)
-		}
-		if err == nil {
-			log.Printf("Child %d exit status (%d)", pid, status)
+		for {
+			var status syscall.WaitStatus
+			pid, err := syscall.Wait4(-1, &status, 0, nil)
+			if err == nil {
+				log.Printf("Child %d exit status (%d)",
+					pid, status)
+			} else if err == syscall.ECHILD {
+				break
+			}
 		}
 	}
 }
