@@ -50,7 +50,6 @@ func chromiumServer(ws *websocket.Conn) {
 	args = append(args, "--disable-gpu")
 	args = append(args, "--disable-software-rasterizer")
 	args = append(args, "--remote-debugging-address="+hostIP())
-	args = append(args, "--remote-debugging-port=0")
 	cmd := exec.Command("chromium-browser", args...)
 	cmd.Stdout = ws
 	cmd.Stderr = ws
