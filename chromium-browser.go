@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"golang.org/x/net/websocket"
 )
@@ -13,7 +15,17 @@ const (
 	originURL   = "http://localhost"
 )
 
+func sigPipeIgnore() {
+	sigPipe := make(chan os.Signal, 4)
+	signal.Notify(sigPipe, syscall.SIGPIPE)
+	for {
+		<-sigPipe
+	}
+}
+
 func main() {
+	// Ignore SIGPIPE to prevent program exit when writing to a broken pipe
+	go sigPipeIgnore()
 	ws, err := websocket.Dial(chromiumURL, "", originURL)
 	if err != nil {
 		log.Fatal(err)
