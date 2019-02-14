@@ -30,7 +30,7 @@ func sigChildHandler() {
 			var status syscall.WaitStatus
 			pid, err := syscall.Wait4(-1, &status, 0, nil)
 			if err == nil {
-				log.Printf("Child %d exit status (%d)",
+				log.Printf("Child PID:%d exit status (%d)",
 					pid, status)
 			} else if err == syscall.ECHILD {
 				break
@@ -58,7 +58,7 @@ func chromiumServer(ws *websocket.Conn) {
 		log.Print(err)
 		return
 	}
-	log.Printf("Start %d chromium-browser "+strings.Join(args, " "),
+	log.Printf("Start PID:%d chromium-browser "+strings.Join(args, " "),
 		cmd.Process.Pid)
 	buf := make([]byte, 512)
 	for {
@@ -69,7 +69,7 @@ func chromiumServer(ws *websocket.Conn) {
 	ws.Close()
 	cmd.Process.Kill()
 	cmd.Wait()
-	log.Printf("Kill %d chromium-browser", cmd.Process.Pid)
+	log.Printf("Kill PID:%d chromium-browser", cmd.Process.Pid)
 }
 
 func main() {
